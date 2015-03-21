@@ -19,5 +19,4 @@ describe RegistrationType, type: :model do
     end
 
   end
-
 end
