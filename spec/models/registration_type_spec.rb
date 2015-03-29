@@ -1,12 +1,20 @@
-# encoding: UTF-8
 require 'spec_helper'
 
-describe RegistrationType, type: :model do  
+describe RegistrationType, type: :model do
   context 'associations' do
     it { should belong_to :event }
     it { should have_many :registration_prices }
   end
-  
+
+  context 'scopes' do
+    describe '.individual' do
+      let!(:registration_type) { FactoryGirl.create(:registration_type, title: 'registration_type.individual') }
+      it { expect(RegistrationType.individual.last).to eq registration_type }
+
+    end
+  end
+
+
   describe '#price' do
     context 'with a valid registration period' do
       it 'delegates to RegistrationPeriod' do
