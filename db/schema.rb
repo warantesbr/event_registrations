@@ -62,6 +62,22 @@ ActiveRecord::Schema.define(version: 20150329160512) do
     t.integer  "attendance_limit"
   end
 
+  create_table "invoices", force: :cascade do |t|
+    t.integer "frete"
+    t.string  "email"
+    t.string  "name"
+    t.string  "cpf"
+    t.string  "gender"
+    t.string  "phone"
+    t.string  "address"
+    t.string  "neighbourhood"
+    t.string  "city"
+    t.string  "state"
+    t.string  "zipcode"
+    t.integer "attendance_id"
+    t.integer "registration_group_id"
+  end
+
   create_table "payment_notifications", force: :cascade do |t|
     t.text     "params"
     t.string   "status"
@@ -71,6 +87,16 @@ ActiveRecord::Schema.define(version: 20150329160512) do
     t.decimal  "settle_amount"
     t.string   "settle_currency"
     t.text     "notes"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "registration_groups", force: :cascade do |t|
+    t.integer  "event_id"
+    t.string   "name"
+    t.integer  "capacity"
+    t.integer  "discount"
+    t.string   "token"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
