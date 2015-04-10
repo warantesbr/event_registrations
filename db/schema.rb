@@ -39,8 +39,6 @@ ActiveRecord::Schema.define(version: 20150407180214) do
     t.string   "neighbourhood"
     t.string   "zipcode"
     t.string   "notes"
-    t.string   "registration_token"
-    t.decimal  "event_price"
   end
 
   create_table "authentications", force: :cascade do |t|
@@ -64,16 +62,6 @@ ActiveRecord::Schema.define(version: 20150407180214) do
 
   create_table "invoices", force: :cascade do |t|
     t.integer "frete"
-    t.string  "email"
-    t.string  "name"
-    t.string  "cpf"
-    t.string  "gender"
-    t.string  "phone"
-    t.string  "address"
-    t.string  "neighbourhood"
-    t.string  "city"
-    t.string  "state"
-    t.string  "zipcode"
     t.integer "attendance_id"
     t.integer "registration_group_id"
   end
@@ -99,6 +87,7 @@ ActiveRecord::Schema.define(version: 20150407180214) do
     t.string   "token"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "leader_id"
   end
 
   create_table "registration_periods", force: :cascade do |t|
