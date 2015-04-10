@@ -62,7 +62,8 @@ ActiveRecord::Schema.define(version: 20150407180214) do
 
   create_table "invoices", force: :cascade do |t|
     t.integer "frete"
-    t.integer "attendance_id"
+    t.decimal "amount"
+    t.integer "user_id"
     t.integer "registration_group_id"
   end
 
