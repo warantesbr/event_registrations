@@ -91,9 +91,6 @@ describe AttendancesController, type: :controller do
       get :show, id: @attendance.id, format: :json
       expect(response).to be_success
     end
-
-    pending 'control the invoice creation'
-
   end
 
   describe "DELETE destroy" do
