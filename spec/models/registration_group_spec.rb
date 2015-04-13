@@ -5,6 +5,8 @@ describe RegistrationGroup, type: :model do
   context 'associations' do
     it { should have_many :attendances }
     it { should have_many :invoices }
+    pending 'Actually should have one invoice and not many. Change prior test and behaviour.'
+
     it { should belong_to :event }
     it { expect(group).to belong_to(:leader).class_name('User') }
   end
@@ -64,6 +66,46 @@ describe RegistrationGroup, type: :model do
         let!(:attendance) { FactoryGirl.create(:attendance, event: event, registration_group: group) }
         it { expect(group.has_price?).to be_truthy }
       end
+    end
+  end
+
+  describe '#update_invoice' do
+    let(:group) { RegistrationGroup.create! event: event, discount: 100 }
+    context 'with a pending invoice' do
+      let!(:invoice) { FactoryGirl.create :invoice, registration_group: group, amount: 100.00 }
+      it 'will change the invoice amount' do
+        group.stubs(:total_price).returns 200.00
+        group.update_invoice
+        expect(Invoice.last.amount).to eq 200.00
+      end
+    end
+
+    context 'with a not pending invoice' do
+      let!(:invoice) { FactoryGirl.create :invoice, registration_group: group, amount: 100.00, status: Invoice::PAID }
+      it 'will not change the invoice amount' do
+        group.stubs(:total_price).returns 200.00
+        group.update_invoice
+        expect(Invoice.last.amount).to eq 100.00
+      end
+    end
+  end
+
+  describe '#accept_members?' do
+    let(:group) { RegistrationGroup.create! event: event, discount: 100 }
+
+    context 'with a pending invoice' do
+      let!(:invoice) { FactoryGirl.create :invoice, registration_group: group, status: Invoice::PENDING }
+      it { expect(group.accept_members?).to be_truthy }
+    end
+
+    context 'with a paid invoice' do
+      let!(:invoice) { FactoryGirl.create :invoice, registration_group: group, status: Invoice::PAID }
+      it { expect(group.accept_members?).to be_falsey }
+    end
+
+    context 'with a sent invoice' do
+      let!(:invoice) { FactoryGirl.create :invoice, registration_group: group, status: Invoice::SENT }
+      it { expect(group.accept_members?).to be_falsey }
     end
   end
 end
