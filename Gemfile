@@ -27,7 +27,6 @@ gem 'omniauth-twitter', '=1.1.0'
 gem 'omniauth-facebook', '=2.0.1'
 gem 'omniauth-github', '=1.1.2'
 gem 'aws-ses', '=0.6.0', require: 'aws/ses'
-gem 'pagseguro-oficial', '~> 2.1.0'
 
 gem 'jquery-rails', '=4.0.3'
 gem 'therubyracer', '=0.12.1', platforms: :ruby
