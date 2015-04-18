@@ -15,9 +15,9 @@ Current::Application.routes.draw do
       end
     end
 
-    resources :payments, only: [:pay_pag_seguro] do
-      collection do
-        post :pay_pag_seguro
+    resources :payments, only: [:checkout] do
+      member do
+        post :checkout
       end
     end
   end
