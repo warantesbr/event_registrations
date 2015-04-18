@@ -6,7 +6,6 @@ describe RegistrationGroup, type: :model do
     it { should have_many :attendances }
     it { should have_many :invoices }
     pending 'Actually should have one invoice and not many. Change prior test and behaviour.'
-
     it { should belong_to :event }
     it { expect(group).to belong_to(:leader).class_name('User') }
   end
@@ -34,7 +33,7 @@ describe RegistrationGroup, type: :model do
     let!(:attendance) { FactoryGirl.create(:attendance, event: event, registration_group: group) }
 
     context 'and one attendance' do
-      it { expect(group.total_price).to eq 80 }
+      it { expect(group.total_price).to eq attendance.registration_fee }
     end
 
     context 'and more attendances' do

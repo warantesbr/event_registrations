@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150412220559) do
+ActiveRecord::Schema.define(version: 20150407180214) do
 
   create_table "attendances", force: :cascade do |t|
     t.integer  "event_id"
@@ -39,6 +39,8 @@ ActiveRecord::Schema.define(version: 20150412220559) do
     t.string   "neighbourhood"
     t.string   "zipcode"
     t.string   "notes"
+    t.string   "registration_token"
+    t.decimal  "event_price"
   end
 
   create_table "authentications", force: :cascade do |t|
@@ -60,6 +62,7 @@ ActiveRecord::Schema.define(version: 20150412220559) do
     t.integer  "attendance_limit"
   end
 
+<<<<<<< HEAD
   create_table "invoices", force: :cascade do |t|
     t.integer "frete"
     t.decimal "amount"
@@ -68,6 +71,8 @@ ActiveRecord::Schema.define(version: 20150412220559) do
     t.string  "status"
   end
 
+=======
+>>>>>>> upstream/register_group
   create_table "payment_notifications", force: :cascade do |t|
     t.text     "params"
     t.string   "status"
@@ -79,6 +84,7 @@ ActiveRecord::Schema.define(version: 20150412220559) do
     t.text     "notes"
     t.datetime "created_at"
     t.datetime "updated_at"
+<<<<<<< HEAD
   end
 
   create_table "registration_groups", force: :cascade do |t|
@@ -93,6 +99,20 @@ ActiveRecord::Schema.define(version: 20150412220559) do
     t.integer  "minimum_size"
   end
 
+=======
+  end
+
+  create_table "registration_groups", force: :cascade do |t|
+    t.integer  "event_id"
+    t.string   "name"
+    t.integer  "capacity"
+    t.integer  "discount"
+    t.string   "token"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+>>>>>>> upstream/register_group
   create_table "registration_periods", force: :cascade do |t|
     t.integer  "event_id"
     t.string   "title"
