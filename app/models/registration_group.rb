@@ -14,10 +14,10 @@ class RegistrationGroup < ActiveRecord::Base
   end
 
   def total_price
-    attendances.map(&:registration_fee).sum
+    attendances.map(&:registration_value).sum * (1 - discount / 100.00)
   end
 
-  def has_price?
+  def price?
     total_price > 0
   end
 
@@ -27,14 +27,17 @@ class RegistrationGroup < ActiveRecord::Base
 
   def update_invoice
     invoice = invoices.last
-    if invoice.pending?
-      invoice.amount = total_price
-      invoice.save!
-    end
+    return unless invoice.pending?
+    invoice.amount = total_price
+    invoice.save!
   end
 
   def accept_members?
     invoices.present? ? invoices.last.pending? : true
+  end
+
+  def has_price?
+    total_price > 0
   end
 
   private

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150412220559) do
+ActiveRecord::Schema.define(version: 20150424001453) do
 
   create_table "attendances", force: :cascade do |t|
     t.integer  "event_id"
@@ -39,7 +39,11 @@ ActiveRecord::Schema.define(version: 20150412220559) do
     t.string   "neighbourhood"
     t.string   "zipcode"
     t.string   "notes"
+    t.integer  "registration_quota_id"
+    t.decimal  "registration_value"
   end
+
+  add_index "attendances", ["registration_quota_id"], name: "index_attendances_on_registration_quota_id"
 
   create_table "authentications", force: :cascade do |t|
     t.integer  "user_id"
@@ -58,14 +62,17 @@ ActiveRecord::Schema.define(version: 20150412220559) do
     t.string   "price_table_link"
     t.boolean  "allow_voting"
     t.integer  "attendance_limit"
+    t.decimal  "full_price"
   end
 
   create_table "invoices", force: :cascade do |t|
-    t.integer "frete"
-    t.decimal "amount"
-    t.integer "user_id"
-    t.integer "registration_group_id"
-    t.string  "status"
+    t.integer  "frete"
+    t.decimal  "amount"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "user_id"
+    t.integer  "registration_group_id"
+    t.string   "status"
   end
 
   create_table "payment_notifications", force: :cascade do |t|
@@ -108,6 +115,18 @@ ActiveRecord::Schema.define(version: 20150412220559) do
     t.decimal  "value"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "registration_quota_id"
+  end
+
+  add_index "registration_prices", ["registration_quota_id"], name: "index_registration_prices_on_registration_quota_id"
+
+  create_table "registration_quota", force: :cascade do |t|
+    t.integer  "quota"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "event_id"
+    t.integer  "registration_price_id"
+    t.integer  "order"
   end
 
   create_table "registration_types", force: :cascade do |t|

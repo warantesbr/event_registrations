@@ -5,7 +5,8 @@ require 'faker'
 FactoryGirl.define do
   factory :event do
     sequence(:name) {|n| "Agile Brazil #{2000 + n}"}
-    price_table_link "http://localhost:9292/link"
+    price_table_link 'http://localhost:9292/link'
+    full_price 850.00
 
     after(:build) do |event|
       event.registration_types << FactoryGirl.build(:registration_type, :event => event)
@@ -23,7 +24,7 @@ FactoryGirl.define do
     association :event
     title 'registration_period.regular'
     start_at Time.zone.now
-    end_at (Time.zone.now + 1.day).end_of_day
+    end_at 1.day.from_now.end_of_day
   end
 
   factory :attendance do
@@ -45,9 +46,10 @@ FactoryGirl.define do
     address {|a| a.user.address }
     neighbourhood {|a| a.user.neighbourhood }
     zipcode {|a| a.user.zipcode }
+    registration_value 400.00
 
     registration_type { |a| a.event.registration_types.find_by_title('registration_type.individual') }
-    registration_date { |a| Time.zone.now }
+    registration_date { Time.zone.now }
   end
 
   factory :payment_notification do
@@ -60,7 +62,7 @@ FactoryGirl.define do
   factory :user do
     first_name "User"
     sequence(:last_name) {|n| "Name#{n}"}
-    email { |a| username = "#{a.first_name} #{a.last_name}".parameterize; "#{username}@example.com" }
+    email { |a| username = "#{a.first_name} #{a.last_name}".parameterize "#{username}@example.com" }
 
     phone "(11) 3322-1234"
     country "BR"

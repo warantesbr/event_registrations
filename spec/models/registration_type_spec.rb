@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe RegistrationType, type: :model do
   context 'associations' do
     it { should belong_to :event }
@@ -10,15 +8,13 @@ describe RegistrationType, type: :model do
     describe '.individual' do
       let!(:registration_type) { FactoryGirl.create(:registration_type, title: 'registration_type.individual') }
       it { expect(RegistrationType.individual.last).to eq registration_type }
-
     end
   end
-
 
   describe '#price' do
     context 'with a valid registration period' do
       it 'delegates to RegistrationPeriod' do
-        time = Time.now
+        time = Time.zone.now
         type = FactoryGirl.build(:registration_type)
         price = RegistrationPeriod.new
 
@@ -28,7 +24,5 @@ describe RegistrationType, type: :model do
         expect(type.price(time)).to eq(599.00)
       end
     end
-
   end
-
 end

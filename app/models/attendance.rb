@@ -7,12 +7,13 @@ class Attendance < ActiveRecord::Base
   belongs_to :registration_type
   belongs_to :registration_period
   belongs_to :registration_group
+  belongs_to :registration_quota
   has_many :payment_notifications, foreign_key: :invoicer_id
 
   validates_confirmation_of :email
   validates_presence_of [:first_name, :last_name, :email, :phone, :country, :city]
-  validates_presence_of :state, :if => Proc.new {|a| a.in_brazil?}
-  validates_presence_of :cpf, :if => Proc.new {|a| a.in_brazil?}
+  validates_presence_of :state, if: ->(a) {a.in_brazil?}
+  validates_presence_of :cpf, if: ->(a) {a.in_brazil?}
 
   validates_length_of [:first_name, :last_name, :phone, :city, :organization], maximum: 100, allow_blank: true
   validates_format_of :email, with: /\A([\w\.%\+\-]+)@([\w\-]+\.)+([\w]{2,})\z/i, allow_blank: true
@@ -59,7 +60,7 @@ class Attendance < ActiveRecord::Base
   scope :paid, -> { where(status: [:paid, :confirmed]) }
   scope :active, -> { where('status != (?)', :cancelled) }
   scope :older_than, ->(date) { where('registration_date < (?)', date) }
-  scope :search_for_list, ->(param) {
+  scope :search_for_list, lambda { |param|
     active.where('first_name LIKE ? OR last_name LIKE ? OR organization LIKE ? OR email LIKE ?',
                  "%#{param}%", "%#{param}%", "%#{param}%", "%#{param}%")
   }
@@ -67,20 +68,6 @@ class Attendance < ActiveRecord::Base
   def base_price
     Rails.logger.warn('Attendance#base_price is deprecated. It was called from ' + caller[1..5].join('\n'))
     registration_fee
-  end
-
-  def registration_period
-    period = event.registration_periods.for(self.registration_date).first
-    if period.super_early_bird? && !entitled_super_early_bird?
-      period = event.registration_periods.for(period.end_at + 1.day).first
-    end
-    period
-  end
-
-  def registration_fee(overriden_registration_type = nil)
-    registration_value = registration_value(overriden_registration_type)
-    return registration_value unless registration_group.present?
-    registration_value * (1 - (registration_group.discount / 100.00))
   end
 
   def cancellable?
@@ -103,17 +90,17 @@ class Attendance < ActiveRecord::Base
     self.country == "BR"
   end
 
-  private
-
-  def registration_value(registration_type)
-    registration_period.price_for_registration_type(registration_type || self.registration_type)
+  def discount
+    amount = 1
+    amount = 1 - (registration_group.discount / 100.00) if registration_group.present?
+    amount
   end
+
+  private
 
   def entitled_super_early_bird?
     attendances = event.attendances
-    if !new_record?
-      attendances = attendances.where('id < ?', id)
-    end
+    attendances = attendances.where('id < ?', id) unless new_record?
     attendances.count < SUPER_EARLY_LIMIT
   end
 end

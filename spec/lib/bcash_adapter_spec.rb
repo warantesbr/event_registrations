@@ -1,51 +1,47 @@
-# encoding: UTF-8
-require 'spec_helper'
 require File.join(Rails.root, '/lib/bcash_adapter.rb')
 
 describe BcashAdapter do
-  before(:each) do
-    event = FactoryGirl.create(:event)
-    @attendance = FactoryGirl.create(:attendance, event: event, registration_date: event.registration_periods.first.start_at)
-    @attendance.stubs(:registration_fee).returns(399)
-  end
 
   describe '.from_invoice' do
-    let(:invoice) { Invoice.from_attendance(@attendance) }
+    let(:event) { Event.create!(name: Faker::Company.name, price_table_link: 'http://localhost:9292/link', full_price: 930.00) }
+    let!(:registration_type) { FactoryGirl.create :registration_type, event: event }
+    let!(:attendance) { FactoryGirl.create :attendance, event: event }
+    let(:invoice) { Invoice.from_attendance(attendance) }
 
     it 'will add item for base registration price' do
       adapter = BcashAdapter.from_invoice(invoice)
 
       expect(adapter.items.size).to eq 1
-      expect(adapter.items[0].amount).to eq @attendance.registration_fee
-      expect(adapter.items[0].name).to eq @attendance.full_name
+      expect(adapter.items[0].amount).to eq attendance.event.registration_price_for(attendance)
+      expect(adapter.items[0].name).to eq attendance.full_name
       expect(adapter.items[0].quantity).to eq 1
       expect(adapter.items[0].number).to eq invoice.id
     end
 
     it 'should add invoice user' do
       adapter = BcashAdapter.from_invoice(invoice)
-      expect(adapter.invoice.user).to eq @attendance.user
+      expect(adapter.invoice.user).to eq attendance.user
     end
   end
 
   describe 'to_variables' do
-    let(:invoice) { Invoice.from_attendance(@attendance) }
-    it 'map each item variable' do
+    let(:event) { Event.create!(name: Faker::Company.name, price_table_link: 'http://localhost:9292/link', full_price: 930.00) }
+    let!(:registration_type) { FactoryGirl.create :registration_type, event: event }
+    let!(:attendance) { FactoryGirl.create :attendance, event: event }
+    let(:invoice) { Invoice.from_attendance(attendance) }
 
-      adapter = BcashAdapter.new([
-                                     BcashAdapter::BcashItem.new('item 1', 2, 10.50),
-                                     BcashAdapter::BcashItem.new('item 2', 3, 9.99, 2)
-                                 ], invoice)
+    it 'map each item variable' do
+      adapter = BcashAdapter.new([BcashAdapter::BcashItem.new('item 1', 2, 10.50), BcashAdapter::BcashItem.new('item 2', 3, 9.99, 2)], invoice)
 
       expect(adapter.to_variables).to include({
-                                                  'produto_valor_1' => 10.50,
-                                                  'produto_descricao_1' => 'item 1',
-                                                  'produto_qtde_1' => 1,
-                                                  'produto_codigo_1' => 2,
-                                                  'produto_valor_2' => 9.99,
-                                                  'produto_descricao_2' => 'item 2',
-                                                  'produto_qtde_2' => 2,
-                                                  'produto_codigo_2' => 3
+                                                'produto_valor_1' => 10.50,
+                                                'produto_descricao_1' => 'item 1',
+                                                'produto_qtde_1' => 1,
+                                                'produto_codigo_1' => 2,
+                                                'produto_valor_2' => 9.99,
+                                                'produto_descricao_2' => 'item 2',
+                                                'produto_qtde_2' => 2,
+                                                'produto_codigo_2' => 3
                                               })
     end
 
@@ -71,9 +67,7 @@ describe BcashAdapter do
   end
 
   describe BcashAdapter::BcashItem do
-    it "should have name" do
-      expect(BcashAdapter::BcashItem.new('item', 2, 10.50).name).to eq('item')
-    end
+    it { expect(BcashAdapter::BcashItem.new('item', 2, 10.50).name).to eq('item') }
 
     it "should have number" do
       expect(BcashAdapter::BcashItem.new('item', 2, 10.50).number).to eq(2)

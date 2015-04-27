@@ -4,13 +4,12 @@ class EventAttendancesController < ApplicationController
   before_filter :load_registration_types, only: [:new, :create]
 
   def index
-    @attendances = Attendance.for_event(event).active.
-      includes(:payment_notifications, :event, :registration_type).all
+    @attendances = Attendance.for_event(event).active.includes(:payment_notifications, :event, :registration_type).all
     respond_to do |format|
       format.html
-      format.csv {
+      format.csv do
         response.headers['Content-Disposition'] = "attachment; filename=\"#{event.name.parameterize.underscore}.csv\""
-      }
+      end
     end
   end
 
@@ -30,6 +29,13 @@ class EventAttendancesController < ApplicationController
     @attendance.registration_group = group if group.present? && group.accept_members?
 
     return unless validate_free_registration(@attendance)
+    @attendance.registration_value = @event.registration_price_for(@attendance)
+    save_attendance!
+  end
+
+  private
+
+  def save_attendance!
     if @attendance.save
       begin
         flash[:notice] = t('flash.attendance.create.success')
@@ -61,14 +67,10 @@ class EventAttendancesController < ApplicationController
     attributes[:email_confirmation] ||= current_user.email
     attributes[:event_id] = event.id
     attributes[:user_id] = current_user.id
-    if current_user.has_approved_session?(event)
-      attributes[:registration_type_id] = event.registration_types.
-        where(title: 'registration_type.speaker').select(:id).first.try(:id)
-    end
     if @registration_types.size == 1
       attributes[:registration_type_id] = @registration_types.first.id
     end
-    attributes[:registration_date] ||= [event.registration_periods.last.end_at, Time.now].min
+    attributes[:registration_date] ||= [event.registration_periods.last.end_at, Time.zone.now].min
     attributes
   end
 
@@ -91,7 +93,7 @@ class EventAttendancesController < ApplicationController
   end
 
   def validate_free_registration(attendance)
-    if is_free?(attendance) && !allowed_free_registration?
+    if @event.free?(attendance) && !current_user.allowed_free_registration?
       attendance.errors[:registration_type_id] << t('activerecord.errors.models.attendance.attributes.registration_type_id.free_not_allowed')
       flash.now[:error] = t('flash.attendance.create.free_not_allowed')
       render :new and return false
@@ -99,32 +101,21 @@ class EventAttendancesController < ApplicationController
     true
   end
 
-  def is_free?(attendance)
-    !event.registration_types.paid.include?(attendance.registration_type)
-  end
-
-  def allowed_free_registration?
-    current_user.has_approved_session?(event) || current_user.organizer?
-  end
-
   def event
     @event ||= Event.includes(registration_types: [:event], registration_periods: [:event]).find_by_id(params.require(:event_id))
   end
 
   def notify(attendance)
-    if attendance.registration_fee > 0
-      EmailNotifications.registration_pending(attendance).deliver
-      attendance.email_sent = true
-      attendance.save
-    end
+    return unless attendance.registration_fee > 0
+    EmailNotifications.registration_pending(attendance).deliver
+    attendance.email_sent = true
+    attendance.save
   end
 
   def notify_or_log(ex)
-    begin
-      notify_airbrake(ex)
-    rescue
-      Rails.logger.error('Airbrake notification failed. Logging error locally only')
-      Rails.logger.error(ex.message)
-    end
+    notify_airbrake(ex)
+  rescue
+    Rails.logger.error('Airbrake notification failed. Logging error locally only')
+    Rails.logger.error(ex.message)
   end
 end
